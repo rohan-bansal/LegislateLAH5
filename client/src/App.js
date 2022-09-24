@@ -7,11 +7,13 @@ import {
   Navigate,
 } from "react-router-dom";
 
+import InputForm from './components/InputForm';
+
 function App() {
   return (
     <Router>
       <Routes>
-        <Route />
+        <Route path='/' element={<InputForm />}/>
       </Routes>
     </Router>
   );
