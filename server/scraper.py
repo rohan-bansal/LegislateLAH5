@@ -10,7 +10,12 @@ import string
 
 
 # API KEY
-KEY = "ac5af4af4d6d3bc398ebe0de863c80e4"
+
+#ac5af4af4d6d3bc398ebe0de863c80e4
+#08a9b62eef83bd08d30edac802c2fa38
+#7a0ac81e5f1e75720eacb95e5b6e354f
+#476147be4e91ffc918d7771b628fe8a0
+KEY = "4ce6ba6400c654c0212d870d4c448f1a"
 
 # 50 states + DC + Federal
 STATES = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
@@ -22,24 +27,30 @@ STATES = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
 
 # get info on a single bill
 async def getBill(billID, topic, session, min_year):
-    print("Requesting " + str(billID))
-    t = time.time()
+    try:
+        print("Requesting " + str(billID))
+        t = time.time()
 
-    # GET from API
-    url = "https://api.legiscan.com/?key={}&op=getBill&id={}".format(
-        KEY, billID)
+        # GET from API
+        url = "https://api.legiscan.com/?key={}&op=getBill&id={}".format(
+            KEY, billID)
 
-    r = await session.request(method='GET', url=url)
-    s = await r.text()
-    json_data = json.loads(s)
-    
-    if json_data['bill']['session']['year_start'] > min_year:
-        # write to file
-        with open("bills/" + topic + "/" + str(billID) + ".json", "w+") as fout:
-            json.dump(json_data, fout)
+        r = await session.request(method='GET', url=url)
+        s = await r.text()
+        json_data = json.loads(s)
+        
+        if 'bill' in json_data.keys():
+            if json_data['bill']['session']['year_start'] >= min_year:
+                # write to file
+                with open("bills/" + topic + "/" + str(billID) + ".json", "w+") as fout:
+                    json.dump(json_data, fout)
 
-        print(str(billID) + " completed in " + str(time.time() - t) + "s")
-        return json_data
+                print(str(billID) + " completed in " + str(time.time() - t) + "s")
+                return json_data
+        else:
+            print(url + " FAILED")
+    except:
+        print("failed")
 
 
 # use async to get a list of bills
@@ -71,7 +82,7 @@ async def searchRaw(topic, session, state="ALL"):
             url = "https://api.legiscan.com/?key={}&op=searchRaw&state={}&query={}&year={}&page={}".format(KEY, state, "+".join(i for i in topic.split(" ")), 1, page)
     
             print(url)
-
+            
             r = await session.request(method='GET', url=url)
             s = await r.text()
             json_data = json.loads(s)
@@ -114,16 +125,52 @@ async def searchTopic(topic, relevanceCutoff=90, state="ALL"):
 
 # get sessions from a state
 
+def getBillList(topic):
+    with open('./bills/' + topic + '/result.json', 'r') as fin:
+        data = json.load(fin)
+        
+    return data["list"]
+
+def updateBillList(topic):
+    with open('./bills/' + topic + '/result.json', 'r') as fin:
+        data = json.load(fin)
+        
+    data['list'] = [i.split(".")[0] for i in os.listdir('./bills/' + topic) if i.split(".")[0] != 'result']
+    
+    with open('./bills/' + topic + '/result.json', 'w') as fout:
+        json.dump(data, fout)
+
+async def processBillsTopic(topic):
+    billlist = getBillList(topic)
+    
+    d = dict(zip(range(2000, 2023), [0] * len(range(2000, 2023))))
+    
+    for billnum in billlist:
+        with open('./bills/' + topic + '/' + str(billnum) + '.json', 'r') as fin:
+            bill = json.load(fin)
+            
+        d[bill['bill']['session']['year_start']] += 1
+        
+    print(d)
+    
+    print(len(billlist))
 
 
+LIST = ["abortion", "marijuana", "tariffs", "minimum wage", "gun", "gay", "vote by mail", "affirmative action", "government funded health insurance", "military budget"]
 
 
 if __name__ == "__main__":
-    #asyncio.run(searchTopic("Mental Health"))
 
-    # asyncio.run(getAllPeople())
-    asyncio.run(searchTopic("Abortion"))
-
+    # Search topic
+    
+    for item in LIST[7:]:
+        asyncio.run(searchTopic(item))
+        
+        updateBillList(item)
+        
+        # break
+        
+        # asyncio.run(processBillsTopic(item))
 
     quit()
     
