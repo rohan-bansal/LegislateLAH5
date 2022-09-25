@@ -369,7 +369,64 @@ async def loadBills(loc, topic):
     except:
         print(loc + topic + " Failed")
 
+import random
 
+def classify(topic):
+    
+    if not os.path.exists("./bills/" + topic):
+        os.mkdir("./bills/" + topic)
+    if not os.path.exists("./bills/" + topic + "/pos"):
+        os.mkdir("./bills/" + topic + "/pos")
+    if not os.path.exists("./bills/" + topic + "/neg"):
+        os.mkdir("./bills/" + topic + "/neg")
+        
+    d = []
+        
+    for state in STATES:
+        try:
+            files = os.listdir('./bills/' + (state + topic))
+            
+            for file in files:
+                d.append((state + topic) + "/" + file)        
+                        
+            # for file in files:
+            #     with open('./bills/' + (state + topic) + "/" + file, 'r') as fin:
+            #         data = json.load(fin)
+            #         print(data["synopsis"])
+                                        
+            #         in_ = input("1 for Pos 2 for Neg: ")
+                    
+            #         if in_ == '1':
+            #             with open('./bills/' + topic + '/pos/' + file.split('.')[0] + '.txt', 'w+') as fout:
+            #                 json.dump(data["synopsis"], fout)
+            #         elif in_ == '2':
+            #             with open('./bills/' + topic + '/neg/' + file.split('.')[0] + '.txt', 'w+') as fout:
+            #                 json.dump(data["synopsis"], fout)
+            #         else:
+            #             print("oops on " + file)
+                        
+        except:
+            pass
+    
+    random.shuffle(d)
+    
+    for i in range(300):
+        with open('./bills/' + d[i], 'r') as fin:
+            data = json.load(fin)
+            print(data["synopsis"] + " (" + "".join(d[i].split('/')).split('.')[0])
+                                
+            in_ = input("1 for Pos 2 for Neg: ")
+            
+            if in_ == '1':
+                with open('./bills/' + topic + '/pos/' + "".join(d[i].split('/')).split('.')[0] + '.txt', 'w+') as fout:
+                    json.dump(data["synopsis"], fout)
+            elif in_ == '2':
+                with open('./bills/' + topic + '/neg/' + "".join(d[i].split('/')).split('.')[0] + '.txt', 'w+') as fout:
+                    json.dump(data["synopsis"], fout)
+            else:
+                print("oops on " + file)
+            
+    
 # GET search raw for a certain topic and state
 # async def searchRaw(topic, session, state="ALL"):
   
@@ -378,8 +435,10 @@ ls = {"Abortion": 2, "Guns": 37}
 
 if __name__ == "__main__":
     
-    for state in STATES:
-        asyncio.run(loadBills(state, "Guns"))
+    # for state in STATES:
+    #     asyncio.run(loadBills(state, "Guns"))
+    
+    classify("Guns")
 
 
     quit()
