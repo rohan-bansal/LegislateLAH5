@@ -45,6 +45,9 @@
       .countryLabelBg{
         fill: #00000000;
       }
+      #pin {
+        display: none;
+      }
     </style>
   </head>
 
@@ -196,6 +199,7 @@
         function(json) {
           //Bind data and create one path per GeoJSON feature
           countriesGroup = svg.append("g").attr("id", "map");
+
           // add a background rectangle
           countriesGroup
             .append("rect")
@@ -300,6 +304,14 @@
             });
           initiateZoom();
 
+
+          countriesGroup.append('image')
+          .attr('xlink:href', './pin.png')
+          .attr('width', 40)
+          .attr('height', 40)
+          .attr('id', 'pin')
+          .attr("transform","translate(0, 0)")
+
         }
 
       );
@@ -308,12 +320,22 @@
 
       function updateState() {
         let state = parent.document.getElementById('root').getAttribute('name');
+        // let state = "CT";
 
         if(state != prevState) {
 
           if (d3.select("#country" + state) != null) {
             d3.select("#country" + state).dispatch("mousedown");
             prevState = state;
+
+            let bb = d3.select("#countryLabel" + state).attr("transform");
+
+            let box = bb.split("(")[1].split(")")[0].split(",");
+
+            let str = "translate(" + (parseFloat(box[0]) - 20) + ", " + (parseFloat(box[1]) - 50) + ")";
+
+            d3.select("#pin").style("display", "block");
+            d3.select("#pin").attr("transform", str);
             // d3.select("#countryLabel" + state).on("mousedown")();
           }
         }
@@ -324,9 +346,17 @@
         
       }
 
+
+      function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      sleep(20);
+
       var interval = setInterval(updateState, 10);
       
  
     </script>
   </body>
-</html>
+
+  </html>
