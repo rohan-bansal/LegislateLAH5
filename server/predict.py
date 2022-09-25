@@ -31,27 +31,30 @@ def predict(text):
     return conf, vals[prediction]
 
 
-STATES = ["WV"]
+STATES = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+          "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+          "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+          "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+          "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "NA"]
 
 
 def clean(topic):
-    files = os.listdir('./bills/WVGuns')
+    for state in STATES:
+        files = os.listdir('./bills/' + (state + topic))
 
-    for file in files:
-        with open('./bills/WVGuns/' + file, 'r') as fin:
-            data = json.load(fin)
+        for file in files:
+            with open('./bills/' + (state + topic) + '/' + file, 'r') as fin:
+                data = json.load(fin)
 
-            print(file)
+                if 'pg' not in data.keys():
+                    data['pg'] = data['synopsis']
+                conf1, pred1 = predict(data['pg'])
 
-            if 'pg' not in data.keys():
-                data['pg'] = data['synopsis']
-            conf1, pred1 = predict(data['pg'])
+                data['pred'] = pred1
+                print(file)
 
-            data['pred'] = pred1
-            print(file)
-
-            with open('./bills/WVGuns/' + file, 'w') as fout:
-                fout.write(json.dumps(data, ensure_ascii=False))
+                with open('./bills/' + (state + topic) + '/' + file, 'w') as fout:
+                    fout.write(json.dumps(data, ensure_ascii=False))
 
 
 clean("Guns")
