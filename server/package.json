@@ -1,7 +1,14 @@
 {
+  "name": "legislate",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.0.2",
+    "express": "^4.18.1",
     "helmet": "^6.0.0",
     "morgan": "^1.10.0"
   }
