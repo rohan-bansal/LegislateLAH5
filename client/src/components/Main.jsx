@@ -8,6 +8,7 @@ var lev = require('fast-levenshtein');
 const senators = require('./senators');
 const peopleData = require('../allpeople.json');
 const gunPeopleData = require('../Gunspeople.json');
+const gunBillsRef = require('../Gunsbillref.json');
 
 const end = React.createRef();
 const top = React.createRef();
@@ -21,8 +22,8 @@ class Main extends React.Component {
         this.state = {
             name: null, topic: null, location: null, coords: null, state: null, names: [], senators: [], moved: false,
             categories: ["Taxes", "Abortion Access", "Minimum Wage", "Gun Control", "LGBTQ+ Rights", "Mail in Ballots", "Cybersecurity", "Marijuana", "Affirmative Action", "Government Funded Health Insurance"],
-            sentiments: [], render: [false, false, false, false, false, false, false, false, false, false], displayName: null, dropDown1: null, dropDown2: null, dropDown3: null,
-            votes: null,
+            sentiments: [], render: [], displayName: null, dropDown1: null, dropDown2: null, dropDown3: null,
+            votes: null, info: null, links: null,
         };
 
         this.submitName = this.submitName.bind(this);
@@ -51,19 +52,25 @@ class Main extends React.Component {
         this.setState({ displayName: finalName });
         this.scrollToTop();
 
+        console.log(finalName);
+
         let votes = gunPeopleData[finalName]["votes"];
-        this.setState({ votes: votes });
-        document.getElementById('root').setAttribute('name', gunPeopleData[finalName]["info"][2]);
+        console.log(votes);
+        let info = gunPeopleData[finalName]["info"];
+        this.setState({ votes: votes, info: info });
+        document.getElementById('root').setAttribute('name', info[2]);
 
         let links = [];
         votes.forEach(element => {
             links.push(element.link);
         });
-        axios.post(process.env.REACT_APP_SERVER_URL + "retrieveStancesByLegislator", { links: links })
-            .then((res) => {
-                this.setState({ sentiments: res.data });
-                // console.log(res.data);
-            });
+        this.setState({ links: links });
+        this.setState({ render: new Array(links.length).fill(false) });
+        // axios.post(process.env.REACT_APP_SERVER_URL + "retrieveStancesByLegislator", { links: links })
+        // .then((res) => {
+        // this.setState({ sentiments: res.data });
+        // console.log(res.data);
+        // });
     }
 
     changeName(e) {
@@ -128,7 +135,7 @@ class Main extends React.Component {
             });
         // console.log(this.state.names);
         // console.log(this.state.senators);
-        this.scrollToBottem();
+        // this.scrollToBottem();
         // this.setState({ dummy: true });
     }
 
@@ -172,14 +179,14 @@ class Main extends React.Component {
         var i = 0;
         if (this.state.names.length != 0) {
             this.state.names.forEach((element) => {
-                names.push(<button key={element} onClick={(e) => { e.preventDefault(); this.setState({ displayName: element }); this.sendToServer(element); }} className="bg-darkgray lg:w-1/4 p-2 lg:p-5 mx-auto rounded-2xl my-5 text-white lg:text-2xl font-semibold">{element + ((i < 2) ? " - State Senator" : " - National Representative")}</button>);
+                names.push(<button key={element + 'name'} onClick={(e) => { e.preventDefault(); this.setState({ displayName: element }); this.sendToServer(element); }} className="bg-darkgray lg:w-1/4 p-2 lg:p-5 mx-auto rounded-2xl my-5 text-white lg:text-2xl font-semibold">{element + ((i < 2) ? " - State Senator" : " - National Representative")}</button>);
                 i++;
             });
         }
 
         if (this.state.senators.length != 0) {
             this.state.senators.forEach((element) => {
-                names.push(<button key={element} onClick={(e) => { e.preventDefault(); this.setState({ displayName: element }); this.sendToServer(element); }} className="bg-darkgray lg:w-1/4 p-2 lg:p-5 mx-auto rounded-2xl my-5 text-white lg:text-2xl font-semibold">{element + " - National Senator"}</button>);
+                names.push(<button key={element + 'sen'} onClick={(e) => { e.preventDefault(); this.setState({ displayName: element }); this.sendToServer(element); }} className="bg-darkgray lg:w-1/4 p-2 lg:p-5 mx-auto rounded-2xl my-5 text-white lg:text-2xl font-semibold">{element + " - National Senator"}</button>);
             });
             // this.scroll();
         }
@@ -194,17 +201,52 @@ class Main extends React.Component {
         // let component1 = <Blurb />;
         // let component2 = null;
 
-        let opened = [];
-        for (let i = 0; i < this.state.render.length; i++) {
-            let render = this.state.render[i];
-            opened[i] = [];
-            if (render) {
-                this.state.sentiments[i].bills.forEach((bill) => {
-                    opened[i].push(<p>{bill.name + '-' + this.state.votes[bill.link].vote + '\n' + bill.synopsis}</p>);
+        let billsData = [];
+        let components = [];
+        let score = 0;
+        // for (let i = 0; i < this.state.render.length; i++) {
+        //     let render = this.state.render[i];
+        //     opened[i] = [];
+        //     if (render) {
+        //         // gunBillsRef[].forEach((bill) => {
+        //             this.state.links.forEach((link) => {
+        //                 opened[i].push(<p>{this.state.votes[link].vote + '-' + gunBillsRef[link].name + '\n' + bill.synopsis}</p>);
+        //                 if ()
+        //             })
+        //         // });
+        //     } else {
+        //         opened[i] = null;
+        //     }
+        // }
+
+        if (this.state.links) {
+            console.log(this.state.links);
+            for (let i = 0; i < this.state.links.length; i++) {
+                // this.state.links.forEach((link) => {
+                let link = this.state.links[i];
+                let vote = this.state.votes.find((element) => element.link == link).vote;
+                billsData.push({
+                    index: i,
+                    header: vote + '-' + gunBillsRef[link].name,
+                    synopsis: gunBillsRef[link].synopsis,
+                    pred: gunBillsRef[link].pred
                 });
-            } else {
-                opened[i] = null;
+
+                let pos = billsData[i].pred === "Positive";
+                if(pos) {
+                    if (vote === "Yes") score++;
+                    else if (vote === "No") score--;
+                } else {
+                    if (vote === "Yes") score--;
+                    else if (vote === "No") score++;
+                }
+                // });
             }
+            billsData.forEach((bill) => {
+                components.push(<button key={"button" + bill.index} className="text-4xl text-bold mt-10" onClick={(e) => this.pressedCategory(e, bill.index)}>{bill.header}</button>);
+                components.push(this.state.render[bill.index] ? <h2 key={"synopsis" + bill.index}>{bill.synopsis}</h2> : null);
+                components.push(this.state.render[bill.index] ? <h2 key={"pred" + bill.index}>{bill.pred}</h2> : null);
+            });
         }
 
         // if (display) {
@@ -216,21 +258,29 @@ class Main extends React.Component {
                 <Title />
                 <div ref={top} />
                 {component1}
-                <div>
+                <div className="text-lightblue">
                     <h1 className="font-poppins text-5xl" style={{ marginTop: "40px", textDecoration: "red wavy underline" }}>{this.state.displayName}</h1>
                     {/* <div className="grid grid-cols-2"> */}
                     <div className="grid grid-cols-1">
-                        <button onClick={(e) => this.pressedCategory(e, 3)}>{
+                        {/* <button className="text-4xl text-bold mt-10" onClick={(e) => this.pressedCategory(e, )}>{
                             "Gun rights position" + ' - ' + this.state.sentiments.prediction
                             // "Abortion - affirmative"
                         }</button>
-                        {opened[3]}
+                        {opened[3]} */}
+                        <h1 className="text-4xl text-bold mt-10">{'Gun rights position' + score}</h1>
+                        {components ? components : null}
                     </div>
                     {/* </div> */}
                 </div>
                 <div className={"text-center text-lightblue lg:text-2xl font-semibold mt-10 mb-40"}>
+                    <div className="grid grid-cols-1">
+                        {names}
+                    </div>
+                    <div className="grid grid-cols-1">
+                        {senators}
+                    </div>
                     <form>
-                        <input ref={end} onChange={this.changeLocation} className="rounded-2xl text-center text-black lg:w-1/4 m-2 lg:m-10 h-12" placeholder="Home Address or Zip Code"></input>
+                        <input onChange={this.changeLocation} className="rounded-2xl text-center text-black lg:w-1/4 m-2 lg:m-10 h-12" placeholder="Home Address or Zip Code"></input>
                         <button onClick={this.submitLocation} className="bg-gray-700 h-12 px-2 lg:px-5 rounded-2xl">Get By Location</button>
                     </form>
 
@@ -238,22 +288,15 @@ class Main extends React.Component {
 
                     <form className="flex items-start justify-center">
                         <div className="lg:w-1/4 m-2 lg:m-10 h-fit inline-block">
-                            <input onChange={this.changeName} className="rounded-2xl text-center text-black h-12" placeholder="Legislator Name"></input>
+                            <input ref={end} onChange={this.changeName} className="rounded-2xl text-center text-black h-12" placeholder="Legislator Name"></input>
                             <div className="my-5"><button className="w-max" onClick={(e) => { e.preventDefault(); this.setState({ displayName: this.state.dropDown1 }); this.sendToServer(this.state.dropDown1); }}>{this.state.dropDown1}</button></div>
                             <div className="my-5"><button className="w-max" onClick={(e) => { e.preventDefault(); this.setState({ displayName: this.state.dropDown2 }); this.sendToServer(this.state.dropDown2); }}>{this.state.dropDown2}</button></div>
                             <div className="my-5"><button className="w-max" onClick={(e) => { e.preventDefault(); this.setState({ displayName: this.state.dropDown3 }); this.sendToServer(this.state.dropDown3); }}>{this.state.dropDown3}</button></div>
                         </div>
                         <button onClick={this.submitName} className="bg-gray-700 h-12 px-2 lg:px-5 rounded-2xl inline-block lg:m-10">Submit Name</button>
                     </form>
-
-                    <div className="grid grid-cols-1">
-                        {names}
-                    </div>
-                    <div className="grid grid-cols-1">
-                        {senators}
-                    </div>
                 </div>
-                <iframe className="h-400 w-600" src="./map.html" frameBorder="0" width={600} height={400} scrolling="no" />
+                <iframe className="h-400 w-600 mx-auto mb-20" src="./map.html" frameBorder="0" width={600} height={400} scrolling="no" />
                 {/* <div ref={end} /> */}
                 <h1 className="h-1"></h1>
                 {component2}
@@ -262,4 +305,4 @@ class Main extends React.Component {
     }
 }
 
-export default Main;
+export default Main;;
