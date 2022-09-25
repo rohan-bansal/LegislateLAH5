@@ -369,6 +369,7 @@ class Main extends React.Component {
           this.state.render[bill.index] ? (
             <h2
               key={"synopsis" + bill.index}
+              className="text-2xl"
               style={{
                 padding: "10px",
                 width: "fit-content",
