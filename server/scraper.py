@@ -6,6 +6,9 @@ import os
 from nltk.tokenize import word_tokenize
 from nltk import ngrams, FreqDist
 
+import requests
+from bs4 import BeautifulSoup
+
 import string
 
 
@@ -22,7 +25,7 @@ STATES = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
           "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
           "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
           "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
-          "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "US"]
+          "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "NA"]
 
 
 # get info on a single bill
@@ -72,6 +75,8 @@ async def searchRaw(topic, session, state="ALL"):
     r = await session.request(method='GET', url=url)
     s = await r.text()
     json_data = json.loads(s)
+    
+    print(json_data)
     
     json_final['results'].append(json_data['searchresult']['results'])
     
@@ -154,262 +159,233 @@ async def processBillsTopic(topic):
     print(d)
     
     print(len(billlist))
+    
+def categorizeBills(topic):
+    billlist = getBillList(topic)
+    
+    data = {"text": [], "target": []}
+    
+    for billnum in billlist:
+        
+        try:
+            with open('./bills/' + topic + '/' + str(billnum) + '.json', 'r') as fin:
+                bill = json.load(fin)
+                
+                desc = bill["bill"]["description"]
+                
+                print("\n\n\n——————————")
+                print(desc)
+                print("——————\n\n")
+                
+                target = input("Enter target: ")
+                
+                data["text"].append(desc)
+                data["target"].append(int(target))
+        except:
+            with open('./bills/abortion_cat.json', 'w+') as fout:
+                json.dump(data, fout)
+                
+            quit()
+            
+            
+            
+def clean_bills(topic):
+    billlist = getBillList(topic)
+    billnums = []
+    
+    for billnum in billlist:
+        with open('./bills/' + topic + '/' + str(billnum) + '.json', 'r') as fin:
+            bill = json.load(fin)
+            
+            if len(bill["bill"]["votes"]) != 0:
+                billnums.append(billnum)
+                    
+    for i in billlist:
+        if i not in billnums:
+            os.remove('./bills/' + topic + '/' + str(i) + '.json')
+            
+    with open('./bills/' + topic + '/result.json', 'r') as fin:
+        data = json.load(fin)
+        
+    data['list'] = billnums
+    
+    with open('./bills/' + topic + '/result.json', 'w') as fout:
+        json.dump(data, fout)
+   
+import math         
+            
+async def scrape_people(topic):
+    billlist = getBillList(topic)
+    
+    session = ClientSession()
+    
+    n = math.ceil(len(billlist) / 50)
+    
+    for i in range(n):
+        # for j in range(50 * i, min(len(billlist), 50 * (i + 1))):
+        
+        # print(50 * i, min(len(billlist), 50 * (i + 1)))
+        # print(billlist[50*i:min(len(billlist), 50 * (i + 1))])
+        
+        print("Starting batch " + str(i + 1))
+            
+        await asyncio.gather(*[rollCall(topic, billnum, session) for billnum in billlist[50*i:min(len(billlist), 50 * (i + 1))]])
+        
+        time.sleep(10)
+    
+    await session.close()
+    
+dd = {"Voted Yea": "yea", "Voted Nay": "nay", "Absent": "absent", "Abstained": "no vote"}
+         
+async def rollCall(topic, billnum, session):
+    
+    try:
+        data = {"sponsors": [], "yea": [], "nay": [], "no vote": [], "absent": []}
+            
+        with open('./bills/' + topic + '/' + str(billnum) + '.json', 'r') as fin:
+            print("Processing bill " + str(billnum))
+            bill = json.load(fin)
+            
+            for sponsor in bill["bill"]["sponsors"]:
+                data["sponsors"].append(sponsor["ballotpedia"])
+                
+            for vote in bill["bill"]["votes"]:
+                url = vote["url"]
+                # print(url)
+                r = await session.request(method='GET', url=url)
+                s = await r.text()
+                
+                bs = BeautifulSoup(s, 'html.parser')
+        
+                print(url, bs.find_all("table", {"id": "gaits-votelist"}))
+                table = bs.find_all("table", {"id": "gaits-votelist"})[1].find("tbody")
+                
+                for i in table.find_all("tr"):
+                    # print(i.findChildren("a")
+                    hrefs = [j['href'] for j in i.findChildren("a") if "ballotpedia.org" in j['href']]
+                    
+                    if len(hrefs) > 0:
+                        name = hrefs[0].split("/")[-1]
+                        data[dd[i.find("span", {"class": "insights"})["title"]]].append(name)
+                        
+        with open('./bills/_a' + topic + '.json', 'w+') as fout:
+            json.dump(data, fout)
+    except:
+        print("Bill " + str(billnum) + " failed")
 
 
-LIST = ["abortion", "marijuana", "tariffs", "minimum wage", "gun", "gay", "vote by mail", "affirmative action", "government funded health insurance", "military budget"]
+# get info on a single bill
+async def loadBill(billURL, loc, session):
+    
+    billId = billURL.split("/")[-2]
+    data = {"synopsis": "", "votes": {"No": [], "Yes": [], "Did Not Vote": [], "NA": []}}
+    
+    # try:        
+    print("Requesting " + billURL)
+    t = time.time()
+    
+    # GET from API
 
+    r = await session.request(method='GET', url=billURL)
+    s = await r.text()
+    
+    soup = BeautifulSoup(s, 'html.parser')
+    
+    body = soup.find("div", {"id": billId}).findChildren("div", recursive=False)[1].findChild()
+    
+    link = body.findChild()['href']
+    
+    synps = body.findChildren("div", recursive=False)[3].findChild("p").text
+    
+    data["synopsis"] = synps
+    
+    votesLink = "https://justfacts.votesmart.org" + link
+    
+    r2 = await session.request(method='GET', url=votesLink)
+    s2 = await r2.text()
+    soup2 = BeautifulSoup(s2, 'html.parser')
+    
+    table = soup2.findChild("table", {"class": "interest-group-ratings-table"}).findChild("tbody")
+
+    for child in table.findChildren("tr", {"class": "d-flex"}):
+        tds = child.findChildren("td")
+        politician = tds[2].findChild()['href'].split("/")[-2]
+        vote = tds[4].text
+        
+        data["votes"][vote].append(politician)
+        
+        
+    with open("bills/" + loc + "/" + billId + ".json", "w+") as fout:
+        json.dump(data, fout)
+        
+        
+        
+    # except:
+    #     print(billId + " Failed")
+
+
+# use async to get a list of bills
+async def loadBills(loc, topic):
+    
+    num = ls[topic]
+    
+    billList = []
+    
+    url = "https://justfacts.votesmart.org/bills/" + loc + "/1/" + str(num)
+    
+    r = requests.get(url)
+    soup = BeautifulSoup(r.content, 'html.parser')
+    
+    
+    table = soup.findChild("table", {"class": "interest-group-ratings-table"}).findChild("tbody")
+    
+    for child in table.findChildren("tr", {"class": "d-flex"}):
+        tds = child.findChildren("td")
+        if int(tds[0].text.split(", ")[-1]) > 2009:
+            billList.append("https://justfacts.votesmart.org" + tds[3].findChild()['href'])
+            
+    # print(billList)
+    
+    
+    session = ClientSession()
+    
+    if not os.path.exists("./bills/" + (loc + topic)):
+        os.mkdir("./bills/" + (loc + topic))
+    
+    await asyncio.gather(*[loadBill(billURL, loc + topic, session) for billURL in billList])
+    
+    await session.close()
+    return True
+
+
+# GET search raw for a certain topic and state
+# async def searchRaw(topic, session, state="ALL"):
+  
+
+ls = {"Abortion": 2, "Guns": 37}
 
 if __name__ == "__main__":
-
-    # Search topic
     
-    for item in LIST[7:]:
-        asyncio.run(searchTopic(item))
+    for state in STATES:
+        asyncio.run(loadBills(state, "Guns"))
+    
+    # votesLink = "https://justfacts.votesmart.org/bill/votes/17360"
+    
+    # r = requests.get(votesLink)
+    # soup2 = BeautifulSoup(r.content, 'html.parser')
+
+    # table = soup2.findChild("table", {"class": "interest-group-ratings-table"}).findChild("tbody")
+    
+    # for child in table.findChildren("tr", {"class": "d-flex"}):
+    #     tds = child.findChildren("td")
+    #     politician = tds[2].findChild()['href'].split("/")[-2]
+    #     vote = tds[4].text
         
-        updateBillList(item)
-        
-        # break
-        
-        # asyncio.run(processBillsTopic(item))
+    #     print(politician, vote)
+    
+    
+    
+    # print(table)
 
     quit()
     
-    
-    
-    
-    
-# async def getSession(state, session):
-#     url = "https://api.legiscan.com/?key={}&op=getSessionList&state={}".format(
-#         KEY, state)
-
-#     r = await session.request(method='GET', url=url)
-#     s = await r.text()
-#     json_data = json.loads(s)
-
-#     return json_data
-
-# # get people from a session
-
-
-# async def getSessionPeople(session_id, session):
-#     url = "https://api.legiscan.com/?key={}&op=getSessionPeople&id={}".format(
-#         KEY, session_id)
-
-#     r = await session.request(method='GET', url=url)
-#     s = await r.text()
-#     json_data = json.loads(s)
-
-#     return json_data
-
-# # get sponsored
-
-
-# async def getSponsored(people_id, session):
-#     url = "https://api.legiscan.com/?key={}&op=getSponsoredList&id={}".format(
-#         KEY, people_id)
-
-#     r = await session.request(method='GET', url=url)
-#     s = await r.text()
-#     json_data = json.loads(s)
-
-#     return json_data
-
-
-# # get people from state
-# async def getPeopleFromState(state, session):
-#     t = time.time()
-#     print("Searching for legislators from: " + state)
-
-#     # get state sessions
-#     json_data = await getSession(state, session)
-
-#     # create path
-#     if not os.path.exists("./states/" + state + "/"):
-#         os.mkdir("./states/" + state + "/")
-
-#     # write sessions
-#     with open("states/" + state + "/sessions.json", "w+") as fout:
-#         json.dump(json_data, fout)
-
-#     # last state session
-#     last_session_id = json_data['sessions'][0]['session_id']
-
-#     print("Last session id: " + str(last_session_id))
-
-#     print("Parsing people from session " + str(last_session_id))
-
-#     # get people from last state session
-#     json_data = await getSessionPeople(last_session_id, session)
-
-#     # write people
-#     with open("states/" + state + "/people.json", "w+") as fout:
-#         json.dump(json_data, fout)
-
-#     # unused: write each person to a file
-#     '''
-#     if not os.path.exists("./states/" + state + "/sen/"):
-#         os.mkdir("./states/" + state + "/sen/")
-#     if not os.path.exists("./states/" + state + "/rep/"):
-#         os.mkdir("./states/" + state + "/rep/")
-    
-#     for person in json_data["sessionpeople"]["people"]:
-#         if(person["last_name"] != ""):
-#             name = person["last_name"]+","+person["first_name"]+"("+person["party"]+")"
-#             if(person["role"] == "Sen"):
-#                 with open("./states/" + state + "/sen/" + name + ".json", "w+") as fout:
-#                     json.dump(person, fout)
-#             else:
-#                 with open("./states/" + state + "/rep/" + name + ".json", "w+") as fout:
-#                     json.dump(person, fout)
-#     '''
-
-#     print(state + " completed in " + str(time.time() - t) + "s")
-
-# # get all legislators from 50 states + DC + Federal
-
-
-# async def getAllPeople():
-#     async with ClientSession() as session:
-#         await asyncio.gather(*[getPeopleFromState(state, session) for state in STATES])
-#     return True
-
-# # search for a legislator
-
-
-# def findPerson(name):
-#     with open('states/allpeople.json', "r") as fin:
-#         json_data = json.load(fin)
-#         return json_data[name]
-
-# # search for a legislator
-
-
-# def findPersonN(people_id):
-#     with open('states/allpeoplen.json', "r") as fin:
-#         json_data = json.load(fin)
-#         return json_data[str(people_id)]
-
-
-# def collectAllPeople():
-#     d = {}
-#     for state in STATES:
-#         print("Searching from " + state)
-#         with open("states/" + state + "/people.json", "r") as fin:
-#             json_data = json.load(fin)
-
-#             if("people" in json_data["sessionpeople"].keys()):
-#                 for person in json_data["sessionpeople"]["people"]:
-
-#                     d[person["name"]] = person
-
-#     json_data = json.dumps(d)
-#     json_data = json.loads(json_data)
-
-#     with open('states/allpeople.json', "w+") as fout:
-#         json.dump(json_data, fout)
-
-
-# def collectAllPeopleN():
-#     d = {}
-#     for state in STATES:
-#         print("Searching from " + state)
-#         with open("states/" + state + "/people.json", "r") as fin:
-#             json_data = json.load(fin)
-
-#             if("people" in json_data["sessionpeople"].keys()):
-#                 for person in json_data["sessionpeople"]["people"]:
-
-#                     d[person["people_id"]] = person
-
-#     json_data = json.dumps(d)
-#     json_data = json.loads(json_data)
-
-#     with open('states/allpeoplen.json', "w+") as fout:
-#         json.dump(json_data, fout)
-
-
-# async def getBill2(billID, bills, session):
-#     print("Requesting " + str(billID))
-#     t = time.time()
-
-#     # GET from API
-#     url = "https://api.legiscan.com/?key={}&op=getBill&id={}".format(
-#         KEY, billID)
-
-#     r = await session.request(method='GET', url=url)
-#     s = await r.text()
-#     json_data = json.loads(s)
-
-#     bills.append(json_data)
-
-#     print(str(billID) + " completed in " + str(time.time() - t) + "s")
-#     return json_data
-
-
-# # use async to get a list of bills
-# async def getBills2(billList, bills, session):
-#     await asyncio.gather(*[getBill2(billID, bills, session) for billID in billList])
-#     return True
-
-
-# async def getTopicDetails(topic, relevanceCutoff=0, state="US"):
-
-#     billList = await searchTopic(topic, relevanceCutoff, state)
-
-#     for bill in billList:
-#         with open("./bills/" + topic + "/" + str(bill) + ".json", "r") as fin:
-#             json_data = json.load(fin)
-
-#             for sponsor in json_data["bill"]["sponsors"]:
-#                 print(sponsor["name"], sponsor["party"])
-
-
-# # loop through spnsored bills
-# async def getSponsoredBills(person):
-
-#     session = ClientSession()
-
-#     person = findPerson(person)
-
-#     json_data = await getSponsored(person["people_id"], session)
-
-#     billIDs = []
-
-#     for bill in json_data["sponsoredbills"]["bills"]:
-#         billIDs.append(bill['bill_id'])
-
-#     bills = []
-
-#     await getBills2(billIDs, bills, session)
-
-#     #print(", ".join(str(bill["bill"]["title"]) for bill in bills))
-
-#     await session.close()
-
-#     return bills
-
-
-# async def analyzeSponsoredBills(person):
-#     bills = await getSponsoredBills(person)
-
-#     total = ""
-
-#     for bill in bills:
-#         total += bill["bill"]["title"] + " "
-
-#     exclude = set(string.punctuation)
-#     total = ''.join(ch for ch in total if ch not in exclude)
-
-#     tokens = word_tokenize(total)
-
-#     while "Relative" in tokens:
-#         tokens.remove("Relative")
-
-#     all_counts = dict()
-#     for size in 2, 5, 7:
-#         all_counts[size] = FreqDist(ngrams(tokens, size))
-
-#     for size in 2, 5, 7:
-
-#         for i in all_counts[size].most_common(50):
-#             print(" ".join(i[0]), i[1])
