@@ -58,7 +58,7 @@ class Main extends React.Component {
 
     this.sendToServer = this.sendToServer.bind(this);
 
-    document.getElementById("root").setAttribute("name", "");
+    document.getElementById("root").setAttribute("name", "CA");
   }
 
   //unused
@@ -255,8 +255,12 @@ class Main extends React.Component {
             }}
             className="bg-darkgray lg:w-1/4 p-2 lg:p-5 mx-auto rounded-2xl my-5 text-white lg:text-2xl font-semibold"
           >
-            {element +
-              (i < 2 ? " - State Senator" : " - National Representative")}
+            {
+              <span className="font-poppins font-bold text-white text-4xl">
+                {element}
+              </span>
+            }{" "}
+            <br></br> {i < 2 ? "State Senator" : "National Representative"}
           </button>
         );
         i++;
@@ -275,7 +279,12 @@ class Main extends React.Component {
             }}
             className="bg-darkgray lg:w-1/4 p-2 lg:p-5 mx-auto rounded-2xl my-5 text-white lg:text-2xl font-semibold"
           >
-            {element + " - National Senator"}
+            {
+              <span className="font-poppins font-bold text-white text-4xl">
+                {element}
+              </span>
+            }{" "}
+            <br></br> {"National Senator"}
           </button>
         );
       });
@@ -440,9 +449,18 @@ class Main extends React.Component {
         </div>
         <div
           className={
-            "text-center text-lightblue lg:text-2xl font-semibold mt-10 mb-40"
+            "text-center text-lightblue lg:text-2xl font-semibold mt-10 mb-20"
           }
         >
+          <iframe
+            className="h-400 w-960 mx-auto mb-20 rounded-2xl"
+            src="./map.html"
+            frameBorder="0"
+            width={960}
+            height={400}
+            scrolling="no"
+          />
+
           <div className="grid grid-cols-1">{names}</div>
           <div className="grid grid-cols-1">{senators}</div>
           <form>
@@ -514,14 +532,6 @@ class Main extends React.Component {
             </button>
           </form>
         </div>
-        <iframe
-          className="h-400 w-600 mx-auto mb-20"
-          src="./map.html"
-          frameBorder="0"
-          width={600}
-          height={400}
-          scrolling="no"
-        />
         {/* <div ref={end} /> */}
         <h1 className="h-1"></h1>
         {component2}
