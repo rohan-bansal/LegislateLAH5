@@ -278,7 +278,7 @@ async def rollCall(topic, billnum, session):
 async def loadBill(billURL, loc, session):
     try:
         billId = billURL.split("/")[-2]
-        data = {"synopsis": "", "votes": {"No": [], "Yes": [], "Did Not Vote": [], "NA": []}}
+        data = {"votes": {"No": [], "Yes": [], "Did Not Vote": [], "NA": []}}
         
         # try:        
         print("Requesting " + billURL)
@@ -298,6 +298,9 @@ async def loadBill(billURL, loc, session):
         synps = body.findChildren("div", recursive=False)[3].findChild("p").text
         
         data["synopsis"] = synps
+        data["link"] = billURL
+        data["name"] = soup.find("h3", {"class": "title"}).text
+        
         
         votesLink = "https://justfacts.votesmart.org" + link
         
@@ -310,9 +313,13 @@ async def loadBill(billURL, loc, session):
         for child in table.findChildren("tr", {"class": "d-flex"}):
             tds = child.findChildren("td")
             politician = tds[2].findChild()['href'].split("/")[-2]
+            name = tds[2].findChild().text
+            state = tds[0].text
+            district = tds[1].text
+            party = tds[3].text
             vote = tds[4].text
             
-            data["votes"][vote].append(politician)
+            data["votes"][vote].append((name, politician, party, state, district))
             
             
         with open("bills/" + loc + "/" + billId + ".json", "w+") as fout:
@@ -373,24 +380,7 @@ if __name__ == "__main__":
     
     for state in STATES:
         asyncio.run(loadBills(state, "Guns"))
-    
-    # votesLink = "https://justfacts.votesmart.org/bill/votes/17360"
-    
-    # r = requests.get(votesLink)
-    # soup2 = BeautifulSoup(r.content, 'html.parser')
 
-    # table = soup2.findChild("table", {"class": "interest-group-ratings-table"}).findChild("tbody")
-    
-    # for child in table.findChildren("tr", {"class": "d-flex"}):
-    #     tds = child.findChildren("td")
-    #     politician = tds[2].findChild()['href'].split("/")[-2]
-    #     vote = tds[4].text
-        
-    #     print(politician, vote)
-    
-    
-    
-    # print(table)
 
     quit()
     
