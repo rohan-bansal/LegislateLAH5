@@ -3,7 +3,12 @@ import axios from "axios";
 import Title from "./Title";
 import Blurb from "./Blurb";
 
+var lev = require('fast-levenshtein');
+
 const senators = require('./senators');
+const peopleData = require('../allpeople.json');
+const gunPeopleData = require('../Gunspeople.json');
+
 const end = React.createRef();
 const top = React.createRef();
 // var dummy = false;
@@ -27,6 +32,7 @@ class Main extends React.Component {
 
         this.sendToServer = this.sendToServer.bind(this);
 
+        document.getElementById('root').setAttribute('name', '');
     }
 
     //unused
@@ -51,12 +57,27 @@ class Main extends React.Component {
 
     changeName(e) {
         this.setState({ name: e.target.value });
-        this.setState({ dropDown1: e.target.value });
+        // this.setState({ dropDown1: e.target.value });
+        let best = [["", Number.MAX_SAFE_INTEGER], ["", Number.MAX_SAFE_INTEGER], ["", Number.MAX_SAFE_INTEGER]];
+        // console.log(best);
+        peopleData.forEach(element => {
+            let dist = lev.get(element, e.target.value);
+            best.sort(function (a, b) {
+                return a[1] - b[1];
+            });
+            // console.log(dist)
+            if (dist < best[2][1]) {
+                best[2][0] = element;
+                best[2][1] = dist;
+            }
+        });
+        console.log(best);
+        this.setState({ dropDown1: best[0][0], dropDown2: best[1][0], dropDown3: best[2][0] });
     }
 
     submitName(e) {
         e.preventDefault();
-        this.sendToServer();
+        this.sendToServer(this.state.dropDown1);
     }
 
     changeLocation(e) {
@@ -208,9 +229,9 @@ class Main extends React.Component {
                     <form className="flex items-start justify-center">
                         <div className="lg:w-1/4 m-2 lg:m-10 h-fit inline-block">
                             <input onChange={this.changeName} className="rounded-2xl text-center text-black h-12" placeholder="Legislator Name"></input>
-                            <div>{this.state.dropDown1}</div>
-                            <div>{this.state.dropDown2}</div>
-                            <div>{this.state.dropDown3}</div>
+                            <div className="my-5"><button className="w-max" onClick={(e) => { e.preventDefault(); this.setState({ displayName: this.state.dropDown1 }); this.sendToServer(this.state.dropDown1); }}>{this.state.dropDown1}</button></div>
+                            <div className="my-5"><button className="w-max" onClick={(e) => { e.preventDefault(); this.setState({ displayName: this.state.dropDown2 }); this.sendToServer(this.state.dropDown2); }}>{this.state.dropDown2}</button></div>
+                            <div className="my-5"><button className="w-max" onClick={(e) => { e.preventDefault(); this.setState({ displayName: this.state.dropDown3 }); this.sendToServer(this.state.dropDown3); }}>{this.state.dropDown3}</button></div>
                         </div>
                         <button onClick={this.submitName} className="bg-gray-700 h-12 px-2 lg:px-5 rounded-2xl inline-block lg:m-10">Submit Name</button>
                     </form>
@@ -222,6 +243,7 @@ class Main extends React.Component {
                         {senators}
                     </div>
                 </div>
+                <iframe className="h-400 w-600" src="./map.html" frameBorder="0" width={600} height={400} scrolling="no" />
                 {/* <div ref={end} /> */}
                 <h1 className="h-1"></h1>
                 {component2}
