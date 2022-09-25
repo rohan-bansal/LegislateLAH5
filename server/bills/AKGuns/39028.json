@@ -1,1 +1,68 @@
-{"votes": {"No": [["Les  S.  Gara", "27211", "Democratic", "AK", "18"], ["Lindsey  S.  Holmes", "68303", "Republican", "AK", "19"], ["Sharon  M.  Cissna", "15863", "Democratic", "AK", "22"], ["Berta  Gardner", "27227", "Democratic", "AK", "24"], ["Mike  Doogan", "68301", "Democratic", "AK", "25"], ["Elizabeth  J. 'Beth'  Kerttula", "15795", "Democratic", "AK", "32"]], "Yes": [["Kyle  B.  Johansen", "66078", "Republican", "AK", "1"], ["Tammie  Wilson", "113990", "Republican", "AK", "2"], ["Steve  M.  Thompson", "71404", "Republican", "AK", "3"], ["Scott  J.  Kawasaki", "27313", "Democratic", "AK", "4"], ["Alan  S.  Dick", "126813", "Republican", "AK", "6"], ["Eric  A.  Feige", "123125", "Republican", "AK", "6"], ["Bob  Miller", "123110", "Democratic", "AK", "7"], ["Wes  Keller", "89179", "Republican", "AK", "7"], ["Mark  A.  Neuman", "27264", "Republican", "AK", "10"], ["Bill  Stoltze", "27186", "Republican", "AK", "11"], ["Dan  Saddler", "123140", "Republican", "AK", "12"], ["Carl  J.  Gatto", "27296", "Republican", "AK", "13"], ["Max  F.  Gruenberg\n                  Jr.", "27346", "Democratic", "AK", "14"], ["Anna  I.  MacKinnon", "68297", "Republican", "AK", "17"], ["James  F. 'Pete'  Petersen", "27394", "Democratic", "AK", "19"], ["Mia  Costello", "117406", "Republican", "AK", "20"], ["Craig  W.  Johnson", "68305", "Republican", "AK", "21"], ["Chris  S.  Tuck", "27178", "Democratic", "AK", "22"], ["Bob  Lynn", "27352", "Republican", "AK", "23"], ["Charisse  E.  Millett", "107815", "Republican", "AK", "24"], ["Lance  Pruitt", "123146", "Republican", "AK", "25"], ["Mike 'Mike'  Hawker", "27249", "Republican", "AK", "27"], ["Charles  M. 'Mike'  Chenault", "27260", "Republican", "AK", "28"], ["Kurt  E.  Olson", "27231", "Republican", "AK", "29"], ["Paul  K.  Seaton", "27292", "Republican", "AK", "30"], ["Cathy  N.  Muñoz", "27291", "Republican", "AK", "31"], ["Peggy  Wilson", "27185", "Republican", "AK", "33"], ["Alan  Austerman", "8837", "Republican", "AK", "35"], ["Bryce  E.  Edgmon", "68319", "Democratic", "AK", "36"], ["Bob  Herron", "107872", "Democratic", "AK", "37"], ["David  Guttenberg", "12786", "Democratic", "AK", "38"], ["Neal  W.  Foster", "116449", "Democratic", "AK", "39"], ["Reggie  Joule", "12721", "Democratic", "AK", "40"]], "Did Not Vote": [["William  A. 'Bill'  Thomas\n                  Jr.", "27235", "Republican", "AK", "5"]], "NA": []}, "synopsis": "Vote to pass a bill that expands the authorization to use deadly force to include any place where an individual is authorized to be.", "link": "https://justfacts.votesmart.org/bill/14926/39028/expands-the-use-of-deadly-force", "name": "HB 80 - Expands the Use of Deadly Force - Alaska Key Vote", "pg": "Vote to pass a bill that expands the authorization to use deadly force to include any place where an individual is authorized to be."}
+{
+  "votes": {
+    "No": [
+      ["Les  S.  Gara", "27211", "Democratic", "AK", "18"],
+      ["Lindsey  S.  Holmes", "68303", "Republican", "AK", "19"],
+      ["Sharon  M.  Cissna", "15863", "Democratic", "AK", "22"],
+      ["Berta  Gardner", "27227", "Democratic", "AK", "24"],
+      ["Mike  Doogan", "68301", "Democratic", "AK", "25"],
+      ["Elizabeth  J. 'Beth'  Kerttula", "15795", "Democratic", "AK", "32"]
+    ],
+    "Yes": [
+      ["Kyle  B.  Johansen", "66078", "Republican", "AK", "1"],
+      ["Tammie  Wilson", "113990", "Republican", "AK", "2"],
+      ["Steve  M.  Thompson", "71404", "Republican", "AK", "3"],
+      ["Scott  J.  Kawasaki", "27313", "Democratic", "AK", "4"],
+      ["Alan  S.  Dick", "126813", "Republican", "AK", "6"],
+      ["Eric  A.  Feige", "123125", "Republican", "AK", "6"],
+      ["Bob  Miller", "123110", "Democratic", "AK", "7"],
+      ["Wes  Keller", "89179", "Republican", "AK", "7"],
+      ["Mark  A.  Neuman", "27264", "Republican", "AK", "10"],
+      ["Bill  Stoltze", "27186", "Republican", "AK", "11"],
+      ["Dan  Saddler", "123140", "Republican", "AK", "12"],
+      ["Carl  J.  Gatto", "27296", "Republican", "AK", "13"],
+      [
+        "Max  F.  Gruenberg\n                  Jr.",
+        "27346",
+        "Democratic",
+        "AK",
+        "14"
+      ],
+      ["Anna  I.  MacKinnon", "68297", "Republican", "AK", "17"],
+      ["James  F. 'Pete'  Petersen", "27394", "Democratic", "AK", "19"],
+      ["Mia  Costello", "117406", "Republican", "AK", "20"],
+      ["Craig  W.  Johnson", "68305", "Republican", "AK", "21"],
+      ["Chris  S.  Tuck", "27178", "Democratic", "AK", "22"],
+      ["Bob  Lynn", "27352", "Republican", "AK", "23"],
+      ["Charisse  E.  Millett", "107815", "Republican", "AK", "24"],
+      ["Lance  Pruitt", "123146", "Republican", "AK", "25"],
+      ["Mike 'Mike'  Hawker", "27249", "Republican", "AK", "27"],
+      ["Charles  M. 'Mike'  Chenault", "27260", "Republican", "AK", "28"],
+      ["Kurt  E.  Olson", "27231", "Republican", "AK", "29"],
+      ["Paul  K.  Seaton", "27292", "Republican", "AK", "30"],
+      ["Cathy  N.  Muñoz", "27291", "Republican", "AK", "31"],
+      ["Peggy  Wilson", "27185", "Republican", "AK", "33"],
+      ["Alan  Austerman", "8837", "Republican", "AK", "35"],
+      ["Bryce  E.  Edgmon", "68319", "Democratic", "AK", "36"],
+      ["Bob  Herron", "107872", "Democratic", "AK", "37"],
+      ["David  Guttenberg", "12786", "Democratic", "AK", "38"],
+      ["Neal  W.  Foster", "116449", "Democratic", "AK", "39"],
+      ["Reggie  Joule", "12721", "Democratic", "AK", "40"]
+    ],
+    "Did Not Vote": [
+      [
+        "William  A. 'Bill'  Thomas\n                  Jr.",
+        "27235",
+        "Republican",
+        "AK",
+        "5"
+      ]
+    ],
+    "NA": []
+  },
+  "synopsis": "Vote to pass a bill that expands the authorization to use deadly force to include any place where an individual is authorized to be.",
+  "link": "https://justfacts.votesmart.org/bill/14926/39028/expands-the-use-of-deadly-force",
+  "name": "HB 80 - Expands the Use of Deadly Force - Alaska Key Vote",
+  "pg": "Vote to pass a bill that expands the authorization to use deadly force to include any place where an individual is authorized to be.",
+  "pred": "Negative"
+}

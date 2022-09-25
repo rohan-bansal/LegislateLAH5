@@ -47,6 +47,9 @@ def clean(topic):
                     else:
                         data['pred'] = pred2
 
+                    with open('./bills/' + (state + topic) + '/' + file, 'w') as fout:
+                        fout.write(json.dumps(data, ensure_ascii=False))
+
         except:
             pass
 
