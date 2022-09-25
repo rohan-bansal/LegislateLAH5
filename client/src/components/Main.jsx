@@ -231,6 +231,15 @@ class Main extends React.Component {
                     synopsis: gunBillsRef[link].synopsis,
                     pred: gunBillsRef[link].pred
                 });
+
+                let pos = billsData[i].pred === "Positive";
+                if(pos) {
+                    if (vote === "Yes") score++;
+                    else if (vote === "No") score--;
+                } else {
+                    if (vote === "Yes") score--;
+                    else if (vote === "No") score++;
+                }
                 // });
             }
             billsData.forEach((bill) => {
@@ -258,7 +267,7 @@ class Main extends React.Component {
                             // "Abortion - affirmative"
                         }</button>
                         {opened[3]} */}
-                        <h1 className="text-4xl text-bold mt-10">Gun rights position - INSERT FINAL SCORE</h1>
+                        <h1 className="text-4xl text-bold mt-10">{'Gun rights position' + score}</h1>
                         {components ? components : null}
                     </div>
                     {/* </div> */}
