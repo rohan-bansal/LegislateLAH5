@@ -5,7 +5,9 @@ import Blurb from "./Blurb";
 
 const senators = require('./senators');
 const end = React.createRef();
+const top = React.createRef();
 // var dummy = false;
+var displayName, display;
 
 
 class Main extends React.Component {
@@ -14,7 +16,7 @@ class Main extends React.Component {
         this.state = {
             name: null, topic: null, location: null, coords: null, state: null, names: [], senators: [], moved: false,
             categories: ["Taxes", "Abortion Access", "Minimum Wage", "Gun Control", "LGBTQ+ Rights", "Mail in Ballots", "Cybersecurity", "Marijuana", "Affirmative Action", "Government Funded Health Insurance"],
-            sentiments: [], render: [false, false, false, false, false, false, false, false, false, false]
+            sentiments: [], render: [false, false, false, false, false, false, false, false, false, false], displayName: null,
         };
 
         this.submitName = this.submitName.bind(this);
@@ -35,13 +37,15 @@ class Main extends React.Component {
             });
     }
 
-    sendToServer() {
+    sendToServer(name) {
         axios.post(process.env.REACT_APP_SERVER_URL + "retrieveStancesByLegislator", { name: this.state.name })
             .then((res) => {
                 this.setState({ sentiments: res.data });
                 console.log(res.data);
             });
         this.setState({ names: [], senators: [], moved: true });
+        displayName = name;
+        this.scrollToTop();
     }
 
     changeName(e) {
@@ -98,12 +102,34 @@ class Main extends React.Component {
         e.preventDefault();
         let copy = [...this.state.render];
         copy[i] = true;
+        console.log(copy);
         this.setState({ render: copy });
     }
 
-    scroll() {
+    scrollToTop() {
+        top.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    scrollToBottem() {
         end.current?.scrollIntoView({ behavior: 'smooth' });
     }
+
+    lev_dist(a, b) {
+        function min_dist(s1, s2) {
+          if (s1 === a.length || s2 === b.length) {
+            return a.length - s1 + b.length - s2;
+          }    
+          if (a[s1] === b[s2]) {
+            return min_dist(s1 + 1, s2 + 1)
+          }
+          return 1 + Math.min(
+            min_dist(s1, s2 + 1),
+            min_dist(s1 + 1, s2), 
+            min_dist(s1 + 1, s2 + 1),
+          )
+        }
+        return min_dist(0, 0)
+      }
 
     render() {
         let names = [];
@@ -112,14 +138,14 @@ class Main extends React.Component {
         var i = 0;
         if (this.state.names.length != 0) {
             this.state.names.forEach((element) => {
-                names.push(<button key={element} onClick={(e) => { e.preventDefault(); this.setState({ name: element }); this.sendToServer(); }} className="bg-darkgray lg:w-1/4 p-2 lg:p-5 mx-auto rounded-2xl my-5 text-white lg:text-2xl font-semibold">{element + ((i < 2) ? " - State Senator" : " - National Representative")}</button>);
+                names.push(<button key={element} onClick={(e) => { e.preventDefault(); this.setState({ displayName: element }); this.sendToServer(element); }} className="bg-darkgray lg:w-1/4 p-2 lg:p-5 mx-auto rounded-2xl my-5 text-white lg:text-2xl font-semibold">{element + ((i < 2) ? " - State Senator" : " - National Representative")}</button>);
                 i++;
             });
         }
 
         if (this.state.senators.length != 0) {
             this.state.senators.forEach((element) => {
-                names.push(<button key={element} onClick={(e) => { e.preventDefault(); this.setState({ name: element }); this.sendToServer(); }} className="bg-darkgray lg:w-1/4 p-2 lg:p-5 mx-auto rounded-2xl my-5 text-white lg:text-2xl font-semibold">{element + " - National Senator"}</button>);
+                names.push(<button key={element} onClick={(e) => { e.preventDefault(); this.setState({ displayName: element }); this.sendToServer(element); }} className="bg-darkgray lg:w-1/4 p-2 lg:p-5 mx-auto rounded-2xl my-5 text-white lg:text-2xl font-semibold">{element + " - National Senator"}</button>);
             });
             // this.scroll();
         }
@@ -139,22 +165,34 @@ class Main extends React.Component {
             const element = this.state.render[i];
             opened[i] = [];
             if (element) {
-                this.state.sentiments[i].bills.forEach((bill) => {
-                    opened[i].push(bill);
-                });
+                // this.state.sentiments[i].bills.forEach((bill) => {
+                // opened[i].push(<h2>{bill}</h2>);
+                // });
             } else {
                 opened[i] = null;
             }
         }
 
+        // if (display) {
+            // displayName = this.state.name;
+        // }
+
         return (
-            <div className="min-h-screen text-center bg-backgroundBlack text-white">
+            <div className="min-h-screen text-center bg-backgroundBlack text-white rounded-2xl">
                 <Title />
+                <div ref={top} className="h-1" />
                 {component1}
-                <div className="grid grid-cols 2">
-                    <div className="grid grid-cols-1">
-                        <button onClick={(e) => this.pressedCategory(e, 3)}>{this.state.sentiments[3].header}</button>
-                        {opened[3]}
+                <div>
+                    <h1 className="font-poppins text-5xl" style={{ marginTop: "40px", textDecoration: "red wavy underline" }}>{this.state.displayName}</h1>
+                    <div className="grid grid-cols-2">
+                        <div className="grid grid-cols-1">
+                            <button onClick={(e) => this.pressedCategory(e, 3)}>{
+                                // this.state.sentiments[3].header
+                                "Abortion - affirmative"
+                            }</button>
+                            <h2>Bill One</h2>
+                            {/* {opened[3]} */}
+                        </div>
                     </div>
                 </div>
                 <div className={"text-center text-lightblue lg:text-2xl font-semibold mt-10 mb-40"}>
@@ -176,7 +214,7 @@ class Main extends React.Component {
                         {senators}
                     </div>
                 </div>
-                <div ref={end} className="h-1" />
+                <div ref={end} />
                 {/* <h1 className="h-1"></h1> */}
                 {component2}
             </div>
