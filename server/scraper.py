@@ -301,6 +301,17 @@ async def loadBill(billURL, loc, session):
         data["link"] = billURL
         data["name"] = soup.find("h3", {"class": "title"}).text
         
+        ll = len(body.findChildren("div", {"class": "col"}))
+        
+        if ll == 3:
+            pg = synps
+        elif ll == 4:
+            pg = " ".join(" ".join(body.findChildren("div", {"class": "col"})[-2].strings).split())        
+        else:
+            pg = " ".join(" ".join(body.findChildren("div", {"class": "col"})[-3].strings).split())        
+        
+        data["pg"] = pg
+        
         
         votesLink = "https://justfacts.votesmart.org" + link
         
@@ -323,7 +334,7 @@ async def loadBill(billURL, loc, session):
             
             
         with open("bills/" + loc + "/" + billId + ".json", "w+") as fout:
-            json.dump(data, fout)
+            json.dump(data, fout, ensure_ascii=False)
     except:
         print(billId + " Failed")
             
@@ -371,7 +382,15 @@ async def loadBills(loc, topic):
 
 import random
 
+def getAlreadyClassified(topic):
+    pos = os.listdir('./bills/' + topic + '/pos')
+    neg = os.listdir('./bills/' + topic + '/neg')
+    
+    return ([i.split('.')[0] for i in pos], [i.split('.')[0] for i in neg])
+
 def classify(topic):
+    
+    pos, neg = getAlreadyClassified(topic)
     
     if not os.path.exists("./bills/" + topic):
         os.mkdir("./bills/" + topic)
@@ -381,32 +400,27 @@ def classify(topic):
         os.mkdir("./bills/" + topic + "/neg")
         
     d = []
+    
+    cnt = 0
         
     for state in STATES:
         try:
             files = os.listdir('./bills/' + (state + topic))
             
             for file in files:
-                d.append((state + topic) + "/" + file)        
-                        
-            # for file in files:
-            #     with open('./bills/' + (state + topic) + "/" + file, 'r') as fin:
-            #         data = json.load(fin)
-            #         print(data["synopsis"])
-                                        
-            #         in_ = input("1 for Pos 2 for Neg: ")
-                    
-            #         if in_ == '1':
-            #             with open('./bills/' + topic + '/pos/' + file.split('.')[0] + '.txt', 'w+') as fout:
-            #                 json.dump(data["synopsis"], fout)
-            #         elif in_ == '2':
-            #             with open('./bills/' + topic + '/neg/' + file.split('.')[0] + '.txt', 'w+') as fout:
-            #                 json.dump(data["synopsis"], fout)
-            #         else:
-            #             print("oops on " + file)
+                cur = (state + topic) + "/" + file
+                form = "".join(cur.split('/')).split('.')[0]
+                
+                if not (form in pos or form in neg):
+                    d.append(cur)
+                else:
+                    print(cur + " skipped")
+                    cnt+=1
                         
         except:
             pass
+        
+    print(str(cnt) + " skipped")
     
     random.shuffle(d)
     
@@ -419,12 +433,28 @@ def classify(topic):
             
             if in_ == '1':
                 with open('./bills/' + topic + '/pos/' + "".join(d[i].split('/')).split('.')[0] + '.txt', 'w+') as fout:
-                    json.dump(data["synopsis"], fout)
+                    fout.write(data["pg"])
             elif in_ == '2':
                 with open('./bills/' + topic + '/neg/' + "".join(d[i].split('/')).split('.')[0] + '.txt', 'w+') as fout:
-                    json.dump(data["synopsis"], fout)
+                    fout.write(data["pg"])
             else:
                 print("oops on " + file)
+            
+            
+def redo(topic):
+    pos, neg = getAlreadyClassified(topic)
+        
+    for file in pos:
+        with open('./bills/' + file[:len(topic) + 2] + '/' + file[len(topic) + 2:] + '.json', 'r') as fin:
+            data = json.load(fin)
+            with open('./bills/' + topic + '/pos/' + file + '.txt', 'w') as fout:
+                fout.write(data["pg"])
+                
+    for file in neg:
+        with open('./bills/' + file[:len(topic) + 2] + '/' + file[len(topic) + 2:] + '.json', 'r') as fin:
+            data = json.load(fin)
+            with open('./bills/' + topic + '/neg/' + file + '.txt', 'w') as fout:
+                fout.write(data["pg"])
             
     
 # GET search raw for a certain topic and state
@@ -436,9 +466,9 @@ ls = {"Abortion": 2, "Guns": 37}
 if __name__ == "__main__":
     
     # for state in STATES:
-    #     asyncio.run(loadBills(state, "Guns"))
+        # asyncio.run(loadBills(state, "Guns"))
     
-    classify("Guns")
+    redo("Guns")
 
 
     quit()
