@@ -1,23 +1,32 @@
 import React from "react";
 import axios from "axios";
+import Title from "./Title";
+import Blurb from "./Blurb";
 
 const senators = require('./senators');
+const end = React.createRef();
+// var dummy = false;
+
 
 class Main extends React.Component {
     constructor(props) {
         super((props));
         this.state = {
-            name: null, topic: null, location: null, coords: null, state: null, names: [], senators: [],
+            name: null, topic: null, location: null, coords: null, state: null, names: [], senators: [], moved: false,
             categories: ["Taxes", "Abortion Access", "Minimum Wage", "Gun Control", "LGBTQ+ Rights", "Mail in Ballots", "Cybersecurity", "Marijuana", "Affirmative Action", "Government Funded Health Insurance"],
-            sentiments: [],
+            sentiments: [], render: [false, false, false, false, false, false, false, false, false, false]
         };
 
         this.submitName = this.submitName.bind(this);
         this.changeName = this.changeName.bind(this);
+
         this.changeLocation = this.changeLocation.bind(this);
         this.submitLocation = this.submitLocation.bind(this);
+
+        this.sendToServer = this.sendToServer.bind(this);
     }
 
+    //unused
     getSenators() {
         // axios.get(process.env.REACT_APP_CONGRESS_URL + "member" + process.env.REACT_APP_CONGRESS_CONFIG + process.env.REACT_APP_CONGRESS_TOKEN)
         axios.get("https://api.congress.gov/v3/member?api_key=" + "2EOUCzGD2RjDH8oLxXcMffEEWRpT3q5tKIKX1ctY")
@@ -30,8 +39,9 @@ class Main extends React.Component {
         axios.post(process.env.REACT_APP_SERVER_URL + "retrieveStancesByLegislator", { name: this.state.name })
             .then((res) => {
                 this.setState({ sentiments: res.data });
-                console.log(res.data)
+                console.log(res.data);
             });
+        this.setState({ names: [], senators: [], moved: true });
     }
 
     changeName(e) {
@@ -39,7 +49,7 @@ class Main extends React.Component {
     }
 
     submitName(e) {
-        e.preventDefault()
+        e.preventDefault();
         this.sendToServer();
     }
 
@@ -80,38 +90,95 @@ class Main extends React.Component {
             });
         // console.log(this.state.names);
         // console.log(this.state.senators);
+        // this.scroll();
+        // this.setState({ dummy: true });
+    }
+
+    pressedCategory(e, i) {
+        e.preventDefault();
+        let copy = [...this.state.render];
+        copy[i] = true;
+        this.setState({ render: copy });
+    }
+
+    scroll() {
+        end.current?.scrollIntoView({ behavior: 'smooth' });
     }
 
     render() {
+        let names = [];
+        let senators = [];
+
+        var i = 0;
+        if (this.state.names.length != 0) {
+            this.state.names.forEach((element) => {
+                names.push(<button key={element} onClick={(e) => { e.preventDefault(); this.setState({ name: element }); this.sendToServer(); }} className="bg-darkgray lg:w-1/4 p-2 lg:p-5 mx-auto rounded-2xl my-5 text-white lg:text-2xl font-semibold">{element + ((i < 2) ? " - State Senator" : " - National Representative")}</button>);
+                i++;
+            });
+        }
+
+        if (this.state.senators.length != 0) {
+            this.state.senators.forEach((element) => {
+                names.push(<button key={element} onClick={(e) => { e.preventDefault(); this.setState({ name: element }); this.sendToServer(); }} className="bg-darkgray lg:w-1/4 p-2 lg:p-5 mx-auto rounded-2xl my-5 text-white lg:text-2xl font-semibold">{element + " - National Senator"}</button>);
+            });
+            // this.scroll();
+        }
+
+        // if (dummy) {
+        // this.scroll();
+        // dummy = false;
+        // }
+
+        let component1 = this.state.moved ? null : <Blurb />;
+        let component2 = this.state.moved ? <Blurb /> : null;
+        // let component1 = <Blurb />;
+        // let component2 = null;
+
+        let opened = [];
+        for (let i = 0; i < this.state.render.length; i++) {
+            const element = this.state.render[i];
+            opened[i] = [];
+            if (element) {
+                this.state.sentiments[i].bills.forEach((bill) => {
+                    opened[i].push(bill);
+                });
+            } else {
+                opened[i] = null;
+            }
+        }
+
         return (
-            <div className="min-h-screen text-center bg-gray-800 text-white">
-                <h1 className="h-1"></h1>
-                <div className="text-center bg-green-400 mx-auto my-10 w-2/3 px-20 py-10 rounded-2xl">
-                    <h1 className="mx-auto w-fit text-4xl pb-10">What Does Your Legislator Truly Think?</h1>
-                    <p>
-                        What legislators say on Twitter or in rallies often doesn't align with their true political views.
-                        Legislators have motivation to present themselves in ways that lead to their re-election.
-                        However, informed citizens should know the true sentiments of their representatives.
-                        Thus, it's important to analyze how lawmakers actually voted on bills to give you the most accurate information.
-                        Look up your legislator below and see what they truly think and how they truly represnt you.
-                        Now go forth and stay informed!
-                    </p>
-                </div>
-                <div className="text-center">
-                    <div>
-                        <input onChange={this.changeName} className="rounded-2xl text-center w-1/4 m-10 text-black" placeholder="Legislator Name"></input>
-                        <button onClick={this.submitName} >Submit Entry</button>
+            <div className="min-h-screen text-center bg-backgroundBlack text-white">
+                <Title />
+                {component1}
+                <div className="grid grid-cols 2">
+                    <div className="grid grid-cols-1">
+                        <button onClick={(e) => this.pressedCategory(e, 3)}>{this.state.sentiments[3].header}</button>
+                        {opened[3]}
                     </div>
-
-                    or
-
-                    <div>
-                        <input onChange={this.changeLocation} className="rounded-2xl text-center w-1/4 m-10 text-black" placeholder="Home Address"></input>
-                        <button onClick={this.submitLocation} className="">Get By Location</button>
-                    </div>
-
-                <h1>{this.state.sentiments.data}</h1>
                 </div>
+                <div className={"text-center text-lightblue lg:text-2xl font-semibold mt-10 mb-40"}>
+                    <form>
+                        <input onChange={this.changeName} className="rounded-2xl text-center text-black lg:w-1/4 m-2 lg:m-10 h-12" placeholder="Legislator Name"></input>
+                        <button onClick={this.submitName} className="bg-gray-700 h-12 px-2 lg:px-5 rounded-2xl">Submit Name</button>
+                    </form>
+
+                    {/* or */}
+
+                    <form>
+                        <input onChange={this.changeLocation} className="rounded-2xl text-center text-black lg:w-1/4 m-2 lg:m-10 h-12" placeholder="Home Address or Zip Code"></input>
+                        <button onClick={this.submitLocation} className="bg-gray-700 h-12 px-2 lg:px-5 rounded-2xl">Get By Location</button>
+                    </form>
+                    <div className="grid grid-cols-1">
+                        {names}
+                    </div>
+                    <div className="grid grid-cols-1">
+                        {senators}
+                    </div>
+                </div>
+                <div ref={end} className="h-1" />
+                {/* <h1 className="h-1"></h1> */}
+                {component2}
             </div>
         );
     }
