@@ -233,6 +233,15 @@
         });
       };
 
+      d3.selection.prototype.moveToBack = function() {
+        return this.each(function() {
+          var firstChild = this.parentNode.children[5];
+          if (firstChild) {
+              this.parentNode.insertBefore(this, firstChild);
+          }
+        });
+      };
+
 
       // on window resize
       $(window).resize(function () {
@@ -300,10 +309,12 @@
             })
             .on("mouseout", function(d, i) {
                 d3.selectAll(".country").classed("country-hover", false);
-                d3.select(this).classed("country-hover", true);
+                d3.select(this).classed("country-hover", false);
 
-            if (prev != d.id)
+            if (prev != d.id) {
               d3.select("#countryLabel" + d.id).style("display", "none");
+              d3.select(this).moveToBack();
+            }  
           })
           // add an onclick action to zoom into clicked country
           .on("mousedown", function (d, i) {
@@ -351,6 +362,7 @@
             })
             .on("mouseout", function(d, i) {
                  d3.select(this).style("display", "none");
+                 d3.select("#country" + d.id).moveToBack();
            })
             // add an onlcick action to zoom into clicked country
             .on("mousedown", function(d, i) {
