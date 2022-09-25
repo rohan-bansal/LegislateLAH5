@@ -48,7 +48,7 @@
       h1 {
         margin-top: 0;
         margin-bottom: 0;
-        font-size: 24px;
+        font-size: 26px;
       }
       svg rect {
         fill: #444860; /* map background colour */
@@ -227,6 +227,13 @@
           );
       }
 
+      d3.selection.prototype.moveToFront = function() {  
+        return this.each(function(){
+          this.parentNode.appendChild(this);
+        });
+      };
+
+
       // on window resize
       $(window).resize(function () {
         // Resize SVG
@@ -277,19 +284,23 @@
               d.properties.data.Total.PosPas /
               (d.properties.data.Total.NegPas + d.properties.data.Total.PosPas);
 
-            return "rgba(255," + (1 - gg) * 255 + ", " + (1 - gg) * 255 + ")";
-          })
-          //      .attr("stroke-width", 10)
-          //      .attr("stroke", "#ff0000")
-          // add a mouseover action to show name label for feature/country
-          .on("mouseover", function (d, i) {
-            d3.selectAll(".country").classed("country-hover", false);
-            d3.select(this).classed("country-hover", true);
-            d3.select("#countryLabel" + d.id).style("display", "block");
-          })
-          .on("mouseout", function (d, i) {
-            d3.selectAll(".country").classed("country-hover", false);
-            d3.select(this).classed("country-hover", true);
+              return "rgba(255," + (1-gg) * 255 + ", " + (1-gg) * 255 + ")";
+            })
+      //      .attr("stroke-width", 10)
+      //      .attr("stroke", "#ff0000")
+            // add a mouseover action to show name label for feature/country
+            .on("mouseover", function(d, i) {
+                d3.selectAll(".country").classed("country-hover", false);
+                d3.select(this).classed("country-hover", true);
+                d3.select("#countryLabel" + d.id).style("display", "block");
+                d3.select(this).moveToFront();
+                d3.select("#pin").moveToFront();
+                d3.select("#pin").moveToFront();
+                d3.select("#countryLabel" + d.id).moveToFront();
+            })
+            .on("mouseout", function(d, i) {
+                d3.selectAll(".country").classed("country-hover", false);
+                d3.select(this).classed("country-hover", true);
 
             if (prev != d.id)
               d3.select("#countryLabel" + d.id).style("display", "none");
@@ -303,47 +314,59 @@
             prev = d.id;
             d3.select("#countryLabel" + d.id).style("display", "block");
 
-            updateInfoPanel(d);
+                d3.select(this).moveToFront();
+                d3.select("#pin").moveToFront();
 
+                d3.select("#countryLabel" + d.id).moveToFront();
+
+                updateInfoPanel(d);
+
+                
             boxZoom(path.bounds(d), path.centroid(d), 20);
-          });
-        // Add a label group to each feature/country. This will contain the country name and a background rectangle
-        // Use CSS to have class "countryLabel" initially hidden
-        countryLabels = countriesGroup
-          .selectAll("g")
-          .data(json.features)
-          .enter()
-          .append("g")
-          .attr("class", "countryLabel")
-          .attr("id", function (d) {
-            return "countryLabel" + d.id;
-          })
-          .attr("transform", function (d) {
-            return (
-              "translate(" +
-              path.centroid(d)[0] +
-              "," +
-              path.centroid(d)[1] +
-              ")"
-            );
-          })
-          // add mouseover functionality to the label
-          .on("mouseover", function (d, i) {
-            d3.select(this).style("display", "block");
-          })
-          .on("mouseout", function (d, i) {
-            d3.select(this).style("display", "none");
-          })
-          // add an onlcick action to zoom into clicked country
-          .on("mousedown", function (d, i) {
-            d3.select(".country").classed("country-on", false);
-            d3.select("#country" + d.id).classed("country-on", true);
+            });
+          // Add a label group to each feature/country. This will contain the country name and a background rectangle
+          // Use CSS to have class "countryLabel" initially hidden
+          countryLabels = countriesGroup
+            .selectAll("g")
+            .data(json.features)
+            .enter()
+            .append("g")
+            .attr("class", "countryLabel")
+            .attr("id", function(d) {
+              return "countryLabel" + d.id;
+            })
+            .attr("transform", function(d) {
+              return (
+                "translate(" + path.centroid(d)[0] + "," + path.centroid(d)[1] + ")"
+              );
+            })
+            // add mouseover functionality to the label
+            .on("mouseover", function(d, i) {
+                d3.select(this).style("display", "block");
+
+                d3.select("#country" + d.id).moveToFront();
+                d3.select("#pin").moveToFront();
+
+                d3.select("#countryLabel" + d.id).moveToFront();
+            })
+            .on("mouseout", function(d, i) {
+                 d3.select(this).style("display", "none");
+           })
+            // add an onlcick action to zoom into clicked country
+            .on("mousedown", function(d, i) {
+                d3.select(".country").classed("country-on", false);
+                d3.select("#country" + d.id).classed("country-on", true);
 
             d3.select("#countryLabel" + prev).style("display", "none");
             prev = d.id;
             d3.select("#countryLabel" + d.id).style("display", "block");
 
-            updateInfoPanel(d);
+                d3.select("#country" + d.id).moveToFront();
+                d3.select("#pin").moveToFront();
+
+                d3.select("#countryLabel" + d.id).moveToFront();
+
+                updateInfoPanel(d);
 
             boxZoom(path.bounds(d), path.centroid(d), 20);
           });
@@ -385,7 +408,7 @@
       var prevState = "";
 
       function updateState() {
-        let state = parent.document.getElementById("root").getAttribute("name");
+        let state = parent.document.getElementById('root').getAttribute('name');
         // let state = "KS";
 
         if (state != prevState) {
