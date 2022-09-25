@@ -27,9 +27,10 @@ class Main extends React.Component {
     }
 
     sendToServer() {
-        axios.post(process.env.REACT_APP_SERVER_URL + "retriveStancesByLegislator", { name: this.state.name })
+        axios.post(process.env.REACT_APP_SERVER_URL + "retrieveStancesByLegislator", { name: this.state.name })
             .then((res) => {
                 this.setState({ sentiments: res.data });
+                console.log(res.data)
             });
     }
 
@@ -108,6 +109,8 @@ class Main extends React.Component {
                         <input onChange={this.changeLocation} className="rounded-2xl text-center w-1/4 m-10 text-black" placeholder="Home Address"></input>
                         <button onClick={this.submitLocation} className="">Get By Location</button>
                     </div>
+
+                <h1>{this.state.sentiments.data}</h1>
                 </div>
             </div>
         );
