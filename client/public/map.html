@@ -238,8 +238,6 @@
                 d3.select("#countryLabel" + prev).style("display", "none");
                 prev = d.id;
                 d3.select("#countryLabel" + d.id).style("display", "block");
-
-                console.log(window.parent.document);
                 
             boxZoom(path.bounds(d), path.centroid(d), 20);
             });
@@ -301,8 +299,33 @@
               return d.bbox.height;
             });
           initiateZoom();
+
         }
+
       );
+
+      var prevState = "";
+
+      function updateState() {
+        let state = parent.document.getElementById('root').getAttribute('name');
+
+        if(state != prevState) {
+
+          if (d3.select("#country" + state) != null) {
+            d3.select("#country" + state).dispatch("mousedown");
+            prevState = state;
+            // d3.select("#countryLabel" + state).on("mousedown")();
+          }
+        }
+
+        // if (document.getElementById("countryLabel" + state) != null) {
+        //   document.getElementById("countryLabel" + state).click()
+        // }
+        
+      }
+
+      var interval = setInterval(updateState, 10);
+      
  
     </script>
   </body>
