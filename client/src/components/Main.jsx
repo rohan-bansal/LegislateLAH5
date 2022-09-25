@@ -390,11 +390,11 @@ class Main extends React.Component {
                         <h2 key={"pred" + bill.index}>
                             {bill.pred === "Positive" ? (
                                 <span className="font-poppins font-bold text-green-200">
-                                    Supports
+                                    Does Not Support
                                 </span>
                             ) : (
                                 <span className="font-poppins font-bold text-red-200">
-                                    Does Not Support
+                                    Supports
                                 </span>
                             )}
                         </h2>
