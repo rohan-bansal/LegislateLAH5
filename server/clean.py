@@ -41,19 +41,21 @@ def refs(topic):
     d = {}
     
     for state in STATES:
-        try:
-            files = os.listdir('./bills/' + (state + topic))
-            
-            for file in files:
-                with open('./bills/' + (state + topic) + '/' + file, 'r') as fin:
-                    data = json.load(fin)
-                                    
-                    if 'pg' not in data.keys():
-                        data['pg'] = data['synopsis']
-                    
-                    d[data["link"]] = {"synopsis": data["synopsis"], "pg": data["pg"], "name": data["name"]}
-        except:
-            print("Rip " + state)
+        # try:
+        files = os.listdir('./bills/' + (state + topic))
+        
+        for file in files:
+            with open('./bills/' + (state + topic) + '/' + file, 'r') as fin:
+                data = json.load(fin)
+                                
+                if 'pg' not in data.keys():
+                    data['pg'] = data['synopsis']
+                
+                # print(file)
+                
+                d[data["link"]] = {"synopsis": data["synopsis"], "pg": data["pg"], "name": data["name"], "pred": data["pred"]}
+        # except:
+        #     print("Rip " + state)
             
     with open("./data/" + topic + "billref.json", 'w+') as fout:
         fout.write(json.dumps(d, ensure_ascii=False))
@@ -90,5 +92,7 @@ def name_lev_dist(topic):
         fout.write(json.dumps(people, ensure_ascii=False))
             
 if __name__ == "__main__":
-    name_lev_dist("Guns")
+    # name_lev_dist("Guns")
     # print(lev_dist("test", "tat"))
+    
+    refs("Guns")
