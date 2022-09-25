@@ -461,14 +461,14 @@ def redo(topic):
 # async def searchRaw(topic, session, state="ALL"):
   
 
-ls = {"Abortion": 2, "Guns": 37}
+ls = {"Env": 30, "Guns": 37}
 
 if __name__ == "__main__":
     
-    # for state in STATES:
-        # asyncio.run(loadBills(state, "Guns"))
+    for state in STATES:
+        asyncio.run(loadBills(state, "Env"))
     
-    redo("Guns")
+    # redo("Guns")
 
 
     quit()
