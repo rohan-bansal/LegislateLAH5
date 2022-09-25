@@ -389,15 +389,16 @@ def getAlreadyClassified(topic):
     return ([i.split('.')[0] for i in pos], [i.split('.')[0] for i in neg])
 
 def classify(topic):
-    
-    pos, neg = getAlreadyClassified(topic)
-    
+        
     if not os.path.exists("./bills/" + topic):
         os.mkdir("./bills/" + topic)
     if not os.path.exists("./bills/" + topic + "/pos"):
         os.mkdir("./bills/" + topic + "/pos")
     if not os.path.exists("./bills/" + topic + "/neg"):
         os.mkdir("./bills/" + topic + "/neg")
+        
+    pos, neg = getAlreadyClassified(topic)
+
         
     d = []
     
@@ -461,14 +462,14 @@ def redo(topic):
 # async def searchRaw(topic, session, state="ALL"):
   
 
-ls = {"Abortion": 2, "Guns": 37}
+ls = {"Env": 30, "Guns": 37}
 
 if __name__ == "__main__":
     
     # for state in STATES:
-        # asyncio.run(loadBills(state, "Guns"))
+        # asyncio.run(loadBills(state, "Env"))
     
-    redo("Guns")
+    classify("Env")
 
 
     quit()
