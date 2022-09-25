@@ -293,6 +293,8 @@
               d.properties.data.Total.PosPas /
               (d.properties.data.Total.NegPas + d.properties.data.Total.PosPas);
 
+            gg *= gg;
+
               return "rgba(255," + (1-gg) * 255 + ", " + (1-gg) * 255 + ")";
             })
       //      .attr("stroke-width", 10)
