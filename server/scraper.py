@@ -276,48 +276,50 @@ async def rollCall(topic, billnum, session):
 
 # get info on a single bill
 async def loadBill(billURL, loc, session):
-    
-    billId = billURL.split("/")[-2]
-    data = {"synopsis": "", "votes": {"No": [], "Yes": [], "Did Not Vote": [], "NA": []}}
-    
-    # try:        
-    print("Requesting " + billURL)
-    t = time.time()
-    
-    # GET from API
+    try:
+        billId = billURL.split("/")[-2]
+        data = {"synopsis": "", "votes": {"No": [], "Yes": [], "Did Not Vote": [], "NA": []}}
+        
+        # try:        
+        print("Requesting " + billURL)
+        t = time.time()
+        
+        # GET from API
 
-    r = await session.request(method='GET', url=billURL)
-    s = await r.text()
-    
-    soup = BeautifulSoup(s, 'html.parser')
-    
-    body = soup.find("div", {"id": billId}).findChildren("div", recursive=False)[1].findChild()
-    
-    link = body.findChild()['href']
-    
-    synps = body.findChildren("div", recursive=False)[3].findChild("p").text
-    
-    data["synopsis"] = synps
-    
-    votesLink = "https://justfacts.votesmart.org" + link
-    
-    r2 = await session.request(method='GET', url=votesLink)
-    s2 = await r2.text()
-    soup2 = BeautifulSoup(s2, 'html.parser')
-    
-    table = soup2.findChild("table", {"class": "interest-group-ratings-table"}).findChild("tbody")
+        r = await session.request(method='GET', url=billURL)
+        s = await r.text()
+        
+        soup = BeautifulSoup(s, 'html.parser')
+        
+        body = soup.find("div", {"id": billId}).findChildren("div", recursive=False)[1].findChild()
+        
+        link = body.findChild()['href']
+        
+        synps = body.findChildren("div", recursive=False)[3].findChild("p").text
+        
+        data["synopsis"] = synps
+        
+        votesLink = "https://justfacts.votesmart.org" + link
+        
+        r2 = await session.request(method='GET', url=votesLink)
+        s2 = await r2.text()
+        soup2 = BeautifulSoup(s2, 'html.parser')
+        
+        table = soup2.findChild("table", {"class": "interest-group-ratings-table"}).findChild("tbody")
 
-    for child in table.findChildren("tr", {"class": "d-flex"}):
-        tds = child.findChildren("td")
-        politician = tds[2].findChild()['href'].split("/")[-2]
-        vote = tds[4].text
-        
-        data["votes"][vote].append(politician)
-        
-        
-    with open("bills/" + loc + "/" + billId + ".json", "w+") as fout:
-        json.dump(data, fout)
-        
+        for child in table.findChildren("tr", {"class": "d-flex"}):
+            tds = child.findChildren("td")
+            politician = tds[2].findChild()['href'].split("/")[-2]
+            vote = tds[4].text
+            
+            data["votes"][vote].append(politician)
+            
+            
+        with open("bills/" + loc + "/" + billId + ".json", "w+") as fout:
+            json.dump(data, fout)
+    except:
+        print(billId + " Failed")
+            
         
         
     # except:
@@ -326,36 +328,39 @@ async def loadBill(billURL, loc, session):
 
 # use async to get a list of bills
 async def loadBills(loc, topic):
+    try:
     
-    num = ls[topic]
-    
-    billList = []
-    
-    url = "https://justfacts.votesmart.org/bills/" + loc + "/1/" + str(num)
-    
-    r = requests.get(url)
-    soup = BeautifulSoup(r.content, 'html.parser')
-    
-    
-    table = soup.findChild("table", {"class": "interest-group-ratings-table"}).findChild("tbody")
-    
-    for child in table.findChildren("tr", {"class": "d-flex"}):
-        tds = child.findChildren("td")
-        if int(tds[0].text.split(", ")[-1]) > 2009:
-            billList.append("https://justfacts.votesmart.org" + tds[3].findChild()['href'])
-            
-    # print(billList)
-    
-    
-    session = ClientSession()
-    
-    if not os.path.exists("./bills/" + (loc + topic)):
-        os.mkdir("./bills/" + (loc + topic))
-    
-    await asyncio.gather(*[loadBill(billURL, loc + topic, session) for billURL in billList])
-    
-    await session.close()
-    return True
+        num = ls[topic]
+        
+        billList = []
+        
+        url = "https://justfacts.votesmart.org/bills/" + loc + "/1/" + str(num)
+        
+        r = requests.get(url)
+        soup = BeautifulSoup(r.content, 'html.parser')
+        
+        
+        table = soup.findChild("table", {"class": "interest-group-ratings-table"}).findChild("tbody")
+        
+        for child in table.findChildren("tr", {"class": "d-flex"}):
+            tds = child.findChildren("td")
+            if int(tds[0].text.split(", ")[-1]) > 2009:
+                billList.append("https://justfacts.votesmart.org" + tds[3].findChild()['href'])
+                
+        # print(billList)
+        
+        
+        session = ClientSession()
+        
+        if not os.path.exists("./bills/" + (loc + topic)):
+            os.mkdir("./bills/" + (loc + topic))
+        
+        await asyncio.gather(*[loadBill(billURL, loc + topic, session) for billURL in billList])
+        
+        await session.close()
+        return True
+    except:
+        print(loc + topic + " Failed")
 
 
 # GET search raw for a certain topic and state
