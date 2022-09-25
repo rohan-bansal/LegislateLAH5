@@ -221,8 +221,8 @@ class Main extends React.Component {
                     {/* <div className="grid grid-cols-2"> */}
                     <div className="grid grid-cols-1">
                         <button onClick={(e) => this.pressedCategory(e, 3)}>{
-                            // "Gun rights position" + ' - ' + this.state.sentiments.prediction
-                            "Abortion - affirmative"
+                            "Gun rights position" + ' - ' + this.state.sentiments.prediction
+                            // "Abortion - affirmative"
                         }</button>
                         {opened[3]}
                     </div>
