@@ -28,34 +28,30 @@ def predict(text):
     with open("./log.txt", "w") as f:
         f.write(f"{vals[prediction]} {conf} {text}")
 
-    print(vals[prediction])
+    return conf, vals[prediction]
 
 
-# STATES = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
-#           "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
-#           "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
-#           "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
-#           "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "NA"]
+STATES = ["WV"]
 
 
-# def clean(topic):
-#     for state in STATES:
-#         try:
-#             files = os.listdir('./bills/' + (state + topic))
+def clean(topic):
+    files = os.listdir('./bills/WVGuns')
 
-#             for file in files:
-#                 with open('./bills/' + (state + topic) + '/' + file, 'r') as fin:
-#                     data = json.load(fin)
-#                     conf1, pred1 = predict(data['pg'])
+    for file in files:
+        with open('./bills/WVGuns/' + file, 'r') as fin:
+            data = json.load(fin)
 
-#                     data['pred'] = pred1
-#                     print(file)
+            print(file)
 
-#                     with open('./bills/' + (state + topic) + '/' + file, 'w') as fout:
-#                         fout.write(json.dumps(data, ensure_ascii=False))
+            if 'pg' not in data.keys():
+                data['pg'] = data['synopsis']
+            conf1, pred1 = predict(data['pg'])
 
-#         except:
-#             pass
+            data['pred'] = pred1
+            print(file)
+
+            with open('./bills/WVGuns/' + file, 'w') as fout:
+                fout.write(json.dumps(data, ensure_ascii=False))
 
 
-# clean("Guns")
+clean("Guns")
